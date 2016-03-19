@@ -48,16 +48,16 @@ public class ReferenceCollector implements Runnable {
 
     @Override
     public void run() {
-        Document htmlpage = null;
+        Document htmlPage = null;
         try {
-            htmlpage = Jsoup
+            htmlPage = Jsoup
                     .connect(this.connectionProperties.getEngine() + this.connectionProperties.getQuery())
                     .userAgent(ConnectionProperties.getUserAgent())
                     .timeout(2000).get();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Elements links = htmlpage.select("a[href]");
+        Elements links = htmlPage.select("a[href]");
         links.removeIf(element -> !element.attr("href").startsWith("/url?q="));
         links.removeIf(element -> element.toString().startsWith("<a class="));
         links.forEach(element -> {
@@ -71,11 +71,11 @@ public class ReferenceCollector implements Runnable {
 
     private String remakeElementAsString(Element element) {
         int indexOfHttp = element.toString().indexOf("http");
-        int indexOfEndindg = element.toString().indexOf("&amp");
-        return element.toString().substring(indexOfHttp, indexOfEndindg);
+        int indexOfEnding = element.toString().indexOf("&amp");
+        return element.toString().substring(indexOfHttp, indexOfEnding);
     }
 
-    public static void refreshLinksData(){
+    public static void refreshCollectorData(){
         allReferences.clear();
         allDistinctDomains.clear();
     }

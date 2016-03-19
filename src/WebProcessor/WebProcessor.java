@@ -15,6 +15,7 @@ public class WebProcessor {
 
     private String query;
     private LinkedBlockingQueue<String> references;
+    private LinkedBlockingQueue<String> pagesData;
 
     public void setQuery(String query) {
         this.query = query;
@@ -22,6 +23,10 @@ public class WebProcessor {
 
     public String getQuery() {
         return query;
+    }
+
+    public LinkedBlockingQueue<String> getPagesData() {
+        return pagesData;
     }
 
     public void collectReferences() {
@@ -35,10 +40,17 @@ public class WebProcessor {
         }
         executor.shutdown();
         references = ReferenceCollector.getAllReferences();
-        ReferenceCollector.refreshLinksData();
+        ReferenceCollector.refreshCollectorData();
     }
 
-    public void collectTextPages(){
-
+    public void collectPagesData(){
+        ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newCachedThreadPool();
+        references.forEach(element ->{
+            PagesDataCollector collector = new PagesDataCollector(element);
+            executor.execute(collector);
+        });
+        pagesData = PagesDataCollector.getPages();
+        PagesDataCollector.refreshCollectorData();
     }
+
 }
