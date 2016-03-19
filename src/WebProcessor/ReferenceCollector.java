@@ -5,7 +5,6 @@ package WebProcessor; /**
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import WebProcessor.SearchEngine;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,13 +13,20 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.concurrent.*;
 
-public class WebPagesCollector {
+public class ReferenceCollector implements Runnable {
 
-    WebPagesCollector() {
+    private ConnectionProperties connectionProperties;
+
+    ReferenceCollector(ConnectionProperties connectionProperties) {
+        this.connectionProperties = connectionProperties;
     }
 
-    LinkedBlockingQueue<String> allReferences = new LinkedBlockingQueue<>();
-    LinkedBlockingQueue<String> allDistinctDomains = new LinkedBlockingQueue<>();
+    private static LinkedBlockingQueue<String> allReferences = new LinkedBlockingQueue<>();
+    private static LinkedBlockingQueue<String> allDistinctDomains = new LinkedBlockingQueue<>();
+
+    public static LinkedBlockingQueue<String> getAllReferences() {
+        return allReferences;
+    }
 
     private static Pattern patternDomainName;
     private Matcher matcher;
@@ -40,12 +46,17 @@ public class WebPagesCollector {
         return domainName;
     }
 
-    public synchronized void dataSearchRequestParsing(String query, SearchEngine engine) throws IOException {
-        Document htmlpage = Jsoup
-                .connect("http://google.com/search?q=value")
-                .userAgent("Mozilla/5.0 (Windows NT 6.1; WOW64) ")
-                .timeout(2000).get();
-
+    @Override
+    public void run() {
+        Document htmlpage = null;
+        try {
+            htmlpage = Jsoup
+                    .connect(this.connectionProperties.getEngine() + this.connectionProperties.getQuery())
+                    .userAgent(ConnectionProperties.getUserAgent())
+                    .timeout(2000).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Elements links = htmlpage.select("a[href]");
         links.removeIf(element -> !element.attr("href").startsWith("/url?q="));
         links.removeIf(element -> element.toString().startsWith("<a class="));
@@ -55,13 +66,17 @@ public class WebPagesCollector {
                 allReferences.add(remakeElementAsString(element));
             }
         });
-        allReferences.forEach(reference -> System.out.println(reference + "\n\n"));
+        //allReferences.forEach(reference -> System.out.println(reference + "\n\n"));
     }
 
     private String remakeElementAsString(Element element) {
         int indexOfHttp = element.toString().indexOf("http");
-        int indexOfEdindg = element.toString().indexOf("&amp");
-        String appropriateReference = element.toString().substring(indexOfHttp, indexOfEdindg);
-        return appropriateReference;
+        int indexOfEndindg = element.toString().indexOf("&amp");
+        return element.toString().substring(indexOfHttp, indexOfEndindg);
+    }
+
+    public static void refreshLinksData(){
+        allReferences.clear();
+        allDistinctDomains.clear();
     }
 }
