@@ -1,5 +1,6 @@
 package WebProcessor;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -7,15 +8,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Created by George on 19.03.2016.
  */
-public class WebProcessor {
+public class WebProcessor implements Runnable {
 
-    public WebProcessor(String query) {
+    public WebProcessor(String query, String path) {
         this.query = query;
+        this.path = path;
     }
 
     private String query;
+    private String path;
     private LinkedBlockingQueue<String> references;
-    private LinkedBlockingQueue<String> pagesData;
 
     public void setQuery(String query) {
         this.query = query;
@@ -25,9 +27,6 @@ public class WebProcessor {
         return query;
     }
 
-    public LinkedBlockingQueue<String> getPagesData() {
-        return pagesData;
-    }
 
     public void collectReferences() {
         SearchEngine.setNumberOfSearchEngines(6);
@@ -43,14 +42,18 @@ public class WebProcessor {
         ReferenceCollector.refreshCollectorData();
     }
 
-    public void collectPagesData(){
-        ThreadPoolExecutor executor = (ThreadPoolExecutor)Executors.newCachedThreadPool();
-        references.forEach(element ->{
-            PagesDataCollector collector = new PagesDataCollector(element);
+    public void collectPagesData() {
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+        references.forEach(element -> {
+            PagesDataCollector collector = new PagesDataCollector(element, path);
             executor.execute(collector);
         });
-        pagesData = PagesDataCollector.getPages();
         PagesDataCollector.refreshCollectorData();
     }
 
+    @Override
+    public void run() {
+        collectReferences();
+        collectPagesData();
+    }
 }

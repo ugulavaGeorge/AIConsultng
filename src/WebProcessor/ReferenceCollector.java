@@ -66,7 +66,6 @@ public class ReferenceCollector implements Runnable {
                 allReferences.add(remakeElementAsString(element));
             }
         });
-        //allReferences.forEach(reference -> System.out.println(reference + "\n\n"));
     }
 
     private String remakeElementAsString(Element element) {

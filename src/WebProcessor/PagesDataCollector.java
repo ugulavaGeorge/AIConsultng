@@ -4,7 +4,9 @@ package WebProcessor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -13,9 +15,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class PagesDataCollector implements Runnable {
 
     private String pageUrl;
+    private String path;
 
-    public PagesDataCollector(String pageUrl) {
+    public PagesDataCollector(String pageUrl, String path) {
         this.pageUrl = pageUrl;
+        this.path = path;
     }
 
     private static final String userAgent = ConnectionProperties.getUserAgent();
@@ -31,7 +35,7 @@ public class PagesDataCollector implements Runnable {
         Document htmlPage = null;
         try {
             htmlPage = Jsoup.connect(pageUrl)
-                    .userAgent(userAgent).timeout(2000).get();
+                    .userAgent(userAgent).get();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,4 +45,17 @@ public class PagesDataCollector implements Runnable {
     public static void refreshCollectorData() {
         pagesTexts.clear();
     }
+
+    /**
+     * saves pages text data in specified directory.
+     * @param url is the path in file systems where produced pages will be stored.
+     * @throws IOException because file writing there.
+     */
+    public void savePagesData(String pageText, String url) throws IOException {
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(path + "/" + url + ".txt"));
+        writer.write(pageText);
+        writer.flush();
+        writer.close();
+    }
+
 }
