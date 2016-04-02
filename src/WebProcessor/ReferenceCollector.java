@@ -2,14 +2,14 @@ package WebProcessor; /**
  * Created by George on 18.03.2016.
  */
 
+
+import java.net.MalformedURLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import java.io.IOException;
 import java.util.concurrent.*;
 
@@ -18,6 +18,7 @@ public class ReferenceCollector implements Runnable {
     private ConnectionProperties connectionProperties;
 
     ReferenceCollector(ConnectionProperties connectionProperties) {
+        System.out.println("ReferenceCollector for" + connectionProperties.getEngine());
         this.connectionProperties = connectionProperties;
     }
 
@@ -50,22 +51,33 @@ public class ReferenceCollector implements Runnable {
     public void run() {
         Document htmlPage = null;
         try {
+            //URLEncoder.encode(this.connectionProperties.getQuery(), "UTF-8")
+            String query = (this.connectionProperties.getEngine() + this.connectionProperties.getQuery());
             htmlPage = Jsoup
-                    .connect(this.connectionProperties.getEngine() + this.connectionProperties.getQuery())
+                    .connect(query)
                     .userAgent(ConnectionProperties.getUserAgent())
                     .timeout(2000).get();
+        } catch (MalformedURLException ignored) {
+
+        } catch (IllegalArgumentException ignored) {
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Elements links = htmlPage.select("a[href]");
-        links.removeIf(element -> !element.attr("href").startsWith("/url?q="));
-        links.removeIf(element -> element.toString().startsWith("<a class="));
-        links.forEach(element -> {
-            if (!allDistinctDomains.contains(getDomainName(element.toString()))) {
-                allDistinctDomains.add(getDomainName(element.toString()));
-                allReferences.add(remakeElementAsString(element));
-            }
-        });
+        /*since if search cannot find any results there will be no references
+        and it will cause NullPointerException.*/
+        System.out.println(connectionProperties.getEngine());
+        if (htmlPage != null) {
+            Elements links = htmlPage.select("a[href]");
+            links.removeIf(element -> !element.attr("href").startsWith("/url?q="));
+            links.removeIf(element -> element.toString().startsWith("<a class="));
+            links.forEach(element -> {
+                if (!allDistinctDomains.contains(getDomainName(element.toString()))) {
+                    allDistinctDomains.add(getDomainName(element.toString()));
+                    allReferences.add(remakeElementAsString(element));
+                }
+            });
+        }
     }
 
     private String remakeElementAsString(Element element) {
@@ -74,8 +86,10 @@ public class ReferenceCollector implements Runnable {
         return element.toString().substring(indexOfHttp, indexOfEnding);
     }
 
-    public static void refreshCollectorData(){
+    public static void refreshCollectorData() {
         allReferences.clear();
         allDistinctDomains.clear();
     }
+
+
 }

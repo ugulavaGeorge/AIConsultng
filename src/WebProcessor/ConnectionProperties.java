@@ -17,8 +17,8 @@ public class ConnectionProperties {
     public ConnectionProperties() {
     }
 
-    public SearchEngine getEngine() {
-        return engine;
+    public String getEngine() {
+        return engine.getEngine();
     }
 
     public String getQuery() {
