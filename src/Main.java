@@ -1,19 +1,19 @@
-import WebProcessor.WebProcessor;
+import WebProcessor.WebWorker;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
- * Created by George on 23.03.2016.
+ * Created by George on 24.03.2016.
  */
 public class Main {
     public static void main(String[] args) {
+        ArrayList<String> queries = new ArrayList<>();
+        queries.add("студенты");
+        queries.add("приёмная комиссия 2016");
+        queries.add("Лебедев Андрей");
         String path = "C:/MyProjects/project/AIConsultng.git/src/outputData";
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        for (int i = 0; i < args.length; i++) {
-            WebProcessor webProcessor = new WebProcessor(args[i], path);
-            executor.execute(webProcessor);
-        }
-        executor.shutdown();
+        WebWorker worker = new WebWorker();
+        worker.performSearchingWithResults(queries,path);
     }
 }
