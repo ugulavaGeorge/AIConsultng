@@ -35,7 +35,7 @@ public class WebProcessor implements Runnable {
 
 
     public void collectReferences() {
-        SearchEngine.setNumberOfSearchEngines(6);
+        SearchEngine.setNumberOfSearchEngines(5);
         int n = SearchEngine.getNumberOfSearchEngines();
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         for (int i = 0; i < n; i++) {

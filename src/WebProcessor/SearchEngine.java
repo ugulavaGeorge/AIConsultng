@@ -17,11 +17,9 @@ public class SearchEngine {
                      break;
             case 2 : this.engine = "https://bing.com/search?q=";
                      break;
-            case 3 : this.engine = "www.aport.ru/search/?q=";
+            case 3 : this.engine = "https://duckduckgo.com/html/search/?q=";
                      break;
-            case 4 : this.engine = "https://duckduckgo.com/?q=";
-                     break;
-            case 5 : this.engine = "go.mail.ru/search?q=";
+            case 4 : this.engine = "https://go.mail.ru/search?q=";
                      break;
             default: throw new IllegalArgumentException("unsupported engine");
         }
